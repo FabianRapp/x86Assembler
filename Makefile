@@ -6,7 +6,9 @@ CFLAGS := $(CFLAGS_DEBUG)
 #-O3
 LIBFT_DIR = libft/
 LIBFT 	=	$(LIBFT_DIR)libft.a
-INCLUDES= -I./include
+INCLUDES=	-I./include \
+			-I./include/instruction_set \
+			-I./libft \
 
 ifeq ($(OS), Darwin)
 	#mac
@@ -17,22 +19,36 @@ SRC_DIR := src/
 SRC_MAIN := main.c
 SRC_TEST_MAIN := main.c
 
+SRC_INIT := \
+	init/init.c \
+
+SRC_INSTRUCTION_SET := \
+	instruction_set/instruction_set.c \
+	instruction_set/operands.c \
+	instruction_set/mov.c \
+
 SOURCE_FILES := \
 	$(SRC_MAIN) \
+	$(SRC_INIT) \
+	$(SRC_INSTRUCTION_SET) \
 
 SOURCES = $(SOURCE_FILES:%=$(SRC_DIR)%)
 
 OBJ_DIR := o_files/
 OBJECTS = $(SOURCE_FILES:%.c=$(OBJ_DIR)%.o)
 
+TEST_INPUT := input.asm
+
 NAME_TEST := tests.out
+
+
 
 GREEN	=	\033[0;32m
 YELLOW	=	\033[33m
 CYAN	=	\033[0;36m
 CLEAR	=	\033[0m
 
-.PHONY: all clean fclean ffclean test redebug print_vars
+.PHONY: all clean fclean ffclean test redebug print_vars compile_raw_test
 
 all: $(NAME)
 
@@ -50,6 +66,11 @@ debug:
 	make CFLAGS="$(CFLAGS_DEBUG)"
 
 redebug: fclean debug
+
+raw_test: $(TEST_INPUT)
+	@as -o test.o $(TEST_INPUT)
+	@ld -o test.bin --oformat binary test.o
+	@rm test.o
 
 test: clean libft
 	make $(NAME_TEST) SRC_MAIN="$(SRC_TEST_MAIN)" NAME=$(NAME_TEST)
