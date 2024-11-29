@@ -15,13 +15,15 @@ void	read_file(char *file_name, char **buffer) {
 		}
 	}
 	assert(file_stat.st_size && "read file has size 0");
-	*buffer = malloc(file_stat.st_size * sizeof(char));
+	*buffer = malloc(file_stat.st_size * sizeof(char) + 1);
+	buffer[0][file_stat.st_size] = 0;
 	assert(*buffer && "malloc failed");
 	fd = open(file_name, O_RDONLY);
 	assert(fd > 0 && "couldn't open input file");
 	if (read(fd, *buffer, file_stat.st_size) != file_stat.st_size) {
 		assert(0 && "error reading input file");
 	}
+	printf("asd:%s\n", *buffer);
 }
 
 void	get_input(t_main *data, int ac, char *av[]) {

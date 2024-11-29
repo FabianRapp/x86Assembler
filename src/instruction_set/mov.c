@@ -12,6 +12,8 @@ t_mov_instruct	*new_mov_instruct(char *name) {
 	assert(mov && "malloc fail");
 
 	mov->instruct_type = MOV_INSTRUCT;
+	mov->max_operands = 2;
+	mov->max_operands = 2;
 
 	mov->name = malloc(sizeof(char) * (1 + strlen(name)));
 	assert(mov->name && "malloc fail");
@@ -24,27 +26,27 @@ void	add_mov_instructs(t_instruct_set *instruct_set) {
 	t_mov_instruct	*mov;
 
 	//move gp-register to gp-register
-	mov = new_mov_instruct("mov ");
+	mov = new_mov_instruct("mov");
 	mov->dest = new_operand(GP_REGISTER_OPERAND);
 	mov->src = new_operand(GP_REGISTER_OPERAND);
 	add_instruct(instruct_set, mov);
 
-	mov = new_mov_instruct("movb ");
+	mov = new_mov_instruct("movb");
 	mov->dest = new_operand(GP_REGISTER_OPERAND);
 	mov->src = new_operand(GP_REGISTER_OPERAND);
 	add_instruct(instruct_set, mov);
 
-	mov = new_mov_instruct("movw ");
+	mov = new_mov_instruct("movw");
 	mov->dest = new_operand(GP_REGISTER_OPERAND);
 	mov->src = new_operand(GP_REGISTER_OPERAND);
 	add_instruct(instruct_set, mov);
 
-	mov = new_mov_instruct("movl ");
+	mov = new_mov_instruct("movl");
 	mov->dest = new_operand(GP_REGISTER_OPERAND);
 	mov->src = new_operand(GP_REGISTER_OPERAND);
 	add_instruct(instruct_set, mov);
 
-	mov = new_mov_instruct("movq ");
+	mov = new_mov_instruct("movq");
 	mov->dest = new_operand(GP_REGISTER_OPERAND);
 	mov->src = new_operand(GP_REGISTER_OPERAND);
 	add_instruct(instruct_set, mov);
@@ -56,7 +58,7 @@ void	add_mov_instructs(t_instruct_set *instruct_set) {
 	//move immidiate to register
 }
 
-void	free_mov_instruct(void *instruct) {
+void	free_mov_instruct(t_mov_instruct *instruct) {
 	t_mov_instruct	*mov = instruct;
 	free(mov->name);
 	free(mov->src.bin);

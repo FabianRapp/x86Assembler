@@ -24,19 +24,24 @@ typedef enum e_instruct_type {
 typedef struct s_mov_struction {
 	t_instruct_type		instruct_type;
 	char				*name;
+	uint8_t				max_operands;
+	uint8_t				min_operands;
+
 	uint8_t				len;
 	t_operand			src;
 	t_operand			dest;
 } __attribute((__may_alias__))	t_mov_instruct;
 
-//typedef struct s_instruct {
-//	t_instruct_type		instruct_type;
-//	char				*name;
-//	unsigned char		data[];
-//} __attribute((__may_alias__))	t_instruct;
+typedef struct s_instruct {
+	t_instruct_type		instruct_type;
+	char				*name;
+	uint8_t				max_operands;
+	uint8_t				min_operands;
+	unsigned char		data[];
+} __attribute((__may_alias__))	t_instruct;
 
 typedef	struct s_instruct_set {
 	size_t			size;
-	t_mov_instruct	**set;
+	t_instruct	**set;
 }	t_instruct_set;
 
