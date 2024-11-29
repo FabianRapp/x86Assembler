@@ -23,6 +23,8 @@ void	free_instruct_set(t_instruct_set *instruct_set) {
 			case (MOV_INSTRUCT):
 				free_mov_instruct((t_mov_instruct *)instruct_set->set[i]);
 				break ;
+			default:
+				break ;
 		}
 	}
 	dyn_arr_free((void **)(&instruct_set->set));

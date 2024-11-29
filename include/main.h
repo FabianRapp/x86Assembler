@@ -16,6 +16,7 @@
 typedef struct s_main {
 	char				*input;
 	t_instruct_set	instruct_set;
+	int					output;
 }	t_main;
 
 void	init(t_main *data, int ac, char *av[]);

@@ -26,19 +26,23 @@ typedef struct s_mov_struction {
 	char				*name;
 	uint8_t				max_operands;
 	uint8_t				min_operands;
-
 	uint8_t				len;
+	uint8_t				instruct[20];
+
 	t_operand			src;
 	t_operand			dest;
-} __attribute((__may_alias__))	t_mov_instruct;
+} __attribute((__may_alias__)) __attribute((__packed__))	t_mov_instruct;
 
 typedef struct s_instruct {
 	t_instruct_type		instruct_type;
 	char				*name;
 	uint8_t				max_operands;
 	uint8_t				min_operands;
+	uint8_t				len;
+	uint8_t				instruct[20];
+
 	unsigned char		data[];
-} __attribute((__may_alias__))	t_instruct;
+} __attribute((__may_alias__)) __attribute((__packed__))	t_instruct;
 
 typedef	struct s_instruct_set {
 	size_t			size;

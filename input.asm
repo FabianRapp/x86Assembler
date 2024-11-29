@@ -1,2 +1,2 @@
-mov %eax, %ebx
-mov %eax, %ebx
+movq %rax, %rbx
+movl %eax, %ebx

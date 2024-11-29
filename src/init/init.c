@@ -45,4 +45,9 @@ void	get_input(t_main *data, int ac, char *av[]) {
 void	init(t_main *data, int ac, char *av[]) {
 	get_input(data, ac, av);
 	init_instruct_set(&data->instruct_set);
+	char	*output_path = "out.bin";
+	mode_t	permissions = S_IRWXU | S_IRUSR | S_IWUSR |S_IXUSR;
+	data->output = open(output_path, O_WRONLY | O_CREAT | O_TRUNC, permissions);
+	assert(data->output > 0 && "could't open output file");
 }
+

@@ -114,3 +114,19 @@ $(LIBFT_DIR):
 	else \
 		git clone https://github.com/FabianRapp/libft.git $(LIBFT_DIR);\
 	fi
+
+PWD = $(shell pwd)
+
+compile_commands:
+	@echo '[' > compile_commands.json
+	@$(foreach src, $(SOURCES), \
+		echo "\t{" >> compile_commands.json; \
+		echo "\t\t\"directory\": \"$(PWD)\"," >> compile_commands.json; \
+		echo "\t\t\"command\": \"$(CC) $(CFLAGS) $(INCLUDES) -o $(OBJS_DIR)$$(basename $(src) .c).o $(src)\"," >> compile_commands.json; \
+		echo "\t\t\"file\": \"$(src)\"" >> compile_commands.json; \
+		echo "\t}," >> compile_commands.json;)
+	@sed -i '' -e '$$ d' compile_commands.json
+	@echo "\t}" >> compile_commands.json
+	@echo ']' >> compile_commands.json
+	@echo "$(YELLOW) Pseudo compile_commands.json generated $(CLEAR)"
+
