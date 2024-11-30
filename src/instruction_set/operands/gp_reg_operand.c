@@ -44,6 +44,7 @@ t_operand	_new_gp_reg(char *operand_str) {
 	operand.binary_bits = 3;
 	operand.volume_size = 1;
 	operand.content = strdup(operand_str);
+	operand.type = GP_REG;
 	assert(operand.content && "malloc fail");
 	for (size_t i = 0; i < sizeof regs / sizeof regs[0]; i++) {
 		for (size_t j = 0; j < sizeof regs[0] / sizeof regs[0][0]; j++) {
@@ -57,3 +58,4 @@ t_operand	_new_gp_reg(char *operand_str) {
 	assert(0 && "is not a supported gp reg");
 	__builtin_unreachable();
 }
+

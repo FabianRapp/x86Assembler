@@ -74,7 +74,6 @@ typedef struct s_operand_set
 {
 	t_operand_type	*set;
 	size_t			count;
-	/* return NULL on no match */
 	t_operand		(*const new_operand)(t_operand_set this,
 						char *operand_str);
 }	t_operand_set;

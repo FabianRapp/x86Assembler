@@ -11,6 +11,64 @@ static bool	sep(char c) {
 	return (isspace(c));
 }
 
+const t_instruct	get_basic_instruct(t_main *program, char *line) {
+	for (size_t i = 0; i < program->instruct_set.size; i++) {
+		const t_instruct	instruct = program->instruct_set.set[i];
+		char		*name = instruct.name;
+		if (!strcmp(line, name)) {
+			return (instruct);
+		}
+	}
+	assert(0 && "invalid instruction");
+	__builtin_unreachable();
+}
+
+void	output_2gp_regs(t_main *data, t_operand operand[2],
+			int operand_count) {
+	if (operand[0].type == GP_REG && operand[1].type == GP_REG) {
+		uint8_t	bits = operand[0].binary_bits + operand[1].binary_bits;
+		assert(bits <= 8
+			&& "unsupported operand opcode size: larger than 1 byte");
+		uint8_t	mask = ~((1 << bits) - 1);// to set the unused bits with 1
+		uint8_t	code = mask
+			| (//shift the register codes into position
+				(operand[0].op_code[0] << operand[0].binary_bits)
+				| (operand[1].op_code[0])
+			);
+		assert(write(data->output, &code, 1) != -1
+			&& "write fail");
+		return ;
+	}
+}
+
+void	output_operands(t_main *data, t_operand operand[2],
+		int operand_count)
+{
+	if (operand_count == 2) {
+		printf("%s\n%s\n",operand[0].content, operand[1].content);
+		if (operand[0].type == GP_REG && operand[1].type == GP_REG) {
+			output_2gp_regs(data, operand, operand_count);
+			return ;
+		}
+	}
+	printf("oerpand_count: %d\n", operand_count);
+	assert(0 && "unsupported operand combination");
+}
+
+void	output_opcode(t_main *data, const t_instruct instruct,
+			t_operand operand[2], int operand_count)
+{
+	//prefix with operation codes (prefix is defined in instruction set atm)
+		assert(write(data->output, instruct.instruct, instruct.len) != -1
+			&& "write fail");
+	output_operands(data, operand, operand_count);
+		//todo:
+	//ModR/M byte
+	//SIB byte
+	//Displacement
+	//Immediate
+}
+
 void	process_instruction(t_main *data, const char *instruction_str) {
 	printf("instruction input: %s\n", instruction_str);
 	char	**instruct_parts = ft_split_fn(instruction_str, sep);
@@ -21,13 +79,11 @@ void	process_instruction(t_main *data, const char *instruction_str) {
 		free(instruct_parts);
 		return ;
 	}
-	//const t_instruct	*instruct;
-	//instruct = get_basic_instruct(&data, instruct_parts[0]);
-	//for (size_t i = 0; i < instruct->len; i++) {
-	//	printf("%u\n", instruct->instruct[i]);
-	//}
-	//assert(instruct && "broken");
-	//printf("%s\n", instruct->name);
+	const t_instruct	instruct = get_basic_instruct(data, instruct_parts[0]);
+	for (size_t i = 0; i < instruct.len; i++) {
+		printf("%u\n", instruct.instruct[i]);
+	}
+	printf("%s\n", instruct.name);
 	char		*operand_str;
 	int			operand_idx = 0;
 	t_operand	operands[2];
@@ -40,16 +96,10 @@ void	process_instruction(t_main *data, const char *instruction_str) {
 		}
 		operands[operand_idx] = data->operand_set.new_operand(
 			data->operand_set, operand_str);
-		//t_operand_token	*operand_list = lex_operand(operand_str);
-		//assert(operands[operand_idx].volume_size
-		//		>= instruct->operand_volume_min[operand_idx]
-		//	&& operands[operand_idx].volume_size
-		//		<= instruct->operand_volume_max[operand_idx]
-		//	&& "operand volume missmtach!"
-		//);
 		operand_idx++;
 	}
-	//output_opcode(&data, instruct, operands, operand_idx);
+	//todo:implement valid operand pair list for instructions and verify operands
+	output_opcode(data, instruct, operands, operand_idx);
 	for (int i = 0; i < operand_idx; i++) {
 		free_operand(operands[i]);
 	}
@@ -78,17 +128,7 @@ int	main(int ac, char *av[]) {
 
 
 //
-//const t_instruct	*get_basic_instruct(t_main *program, char *line) {
-//
-//	for (size_t i = 0; i < program->instruct_set.size; i++) {
-//		const t_instruct	*instruct = program->instruct_set.set[i];
-//		char		*name = instruct->name;
-//		if (!strcmp(line, name)) {
-//			return (instruct);
-//		}
-//	}
-//	return (NULL);
-//}
+
 //
 
 //
@@ -259,48 +299,7 @@ int	main(int ac, char *av[]) {
 //	__builtin_unreachable();
 //}
 //
-//void	output_2gp_regs(t_main *data, t_operand_token operand[2],
-//			int operand_count) {
-//	if (operand[0].type == GP_REG && operand[1].type == GP_REG) {
-//		uint8_t	bits = operand[0].binary_bits + operand[1].binary_bits;
-//		assert(bits <= 8
-//			&& "unsupported operand opcode size: larger than 1 byte");
-//		uint8_t	code = (~((1 << bits) - 1))//mask the unused bits with 1
-//			& (//shift the register codes into position
-//				(operand[0].op_code[0] << operand[0].binary_bits)
-//				| (operand[1].op_code[0])
-//			);
-//		assert(write(data->output, &code, 1) != -1
-//			&& "write fail");
-//		return ;
-//	}
-//}
-//
-//void	output_operands(t_main *data, t_operand_token operand[2],
-//		int operand_count)
-//{
-//	if (operand_count == 2) {
-//		if (operand[0].type == GP_REG && operand[1].type == GP_REG) {
-//			output_2gp_regs(data, operand, operand_count);
-//			return ;
-//		}
-//	}
-//	assert(0 && "unsupported operand combination");
-//}
-//
-//void	output_opcode(t_main *data, const t_instruct *instruct,
-//			t_operand_token operand[2], int operand_count)
-//{
-//	//prefix with operation codes (prefix is defined in instruction set atm)
-//		assert(write(data->output, instruct->instruct, instruct->len) != -1
-//			&& "write fail");
-//	output_operands(data, operand, operand_count);
-//		//todo:
-//	//ModR/M byte
-//	//SIB byte
-//	//Displacement
-//	//Immediate
-//}
+
 //
 //int	main(int ac, char *av[]) {
 //	t_main	data = {

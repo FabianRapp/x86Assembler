@@ -10,10 +10,8 @@
 #include <operands.h>
 #include <mov.h>
 
-void	add_instruct(t_instruct_set *instruct_set, t_instruct instruct);
-
+void			add_instruct(t_instruct_set *instruct_set, t_instruct instruct);
 t_instruct_set	init_instruct_set(void);
-
-void	free_instruct_set(t_instruct_set instruct_set);
+void			free_instruct_set(t_instruct_set instruct_set);
 
 #endif // instruct_SET_H

@@ -1,1 +1,1 @@
-movw %ax, %dx
+movq %rax, %rdx

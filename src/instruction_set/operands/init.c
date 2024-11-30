@@ -1,5 +1,6 @@
 #include <operands.h>
 #include "operand_types.h"
+#include <instruction_types.h>
 
 void	_add_gp_reg_type(t_operand_set *set) {
 	t_operand_type	gp_reg = {
