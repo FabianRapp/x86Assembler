@@ -52,36 +52,46 @@ void	add_mov_instructs(t_instruct_set *instruct_set) {
 
 	//move gp-register to gp-register
 	mov = new_mov_instruct("mov");
-	mov->dest = new_operand(GP_REGISTER_OPERAND);
-	mov->src = new_operand(GP_REGISTER_OPERAND);
 	mov->instruct[0] = get_rex(1, 0, 0, 0);
 	//todo: incorrect*****
 	mov->instruct[1] = 0x89;
 	mov->len = 2;
+	mov->operand_volume_min[0] = 1;
+	mov->operand_volume_min[1] = 1;
+	mov->operand_volume_max[0] = 8;
+	mov->operand_volume_max[1] = 8;
 	//********************
 	add_instruct(instruct_set, mov);
 
 	mov = new_mov_instruct("movb");
-	mov->dest = new_operand(GP_REGISTER_OPERAND);
-	mov->src = new_operand(GP_REGISTER_OPERAND);
 	mov->instruct[0] = 0x88;
+	mov->operand_volume_min[0] = 1;
+	mov->operand_volume_min[1] = 1;
+	mov->operand_volume_max[0] = 1;
+	mov->operand_volume_max[1] = 1;
 	add_instruct(instruct_set, mov);
 
 	mov = new_mov_instruct("movw");
-	mov->dest = new_operand(GP_REGISTER_OPERAND);
-	mov->src = new_operand(GP_REGISTER_OPERAND);
 	mov->instruct[0] = 0x89;
+	mov->operand_volume_min[0] = 2;
+	mov->operand_volume_min[1] = 2;
+	mov->operand_volume_max[0] = 2;
+	mov->operand_volume_max[1] = 2;
 	add_instruct(instruct_set, mov);
 
 	mov = new_mov_instruct("movl");
-	mov->dest = new_operand(GP_REGISTER_OPERAND);
-	mov->src = new_operand(GP_REGISTER_OPERAND);
 	mov->instruct[0] = 0x89;
+	mov->operand_volume_min[0] = 4;
+	mov->operand_volume_min[1] = 4;
+	mov->operand_volume_max[0] = 4;
+	mov->operand_volume_max[1] = 4;
 	add_instruct(instruct_set, mov);
 
 	mov = new_mov_instruct("movq");
-	mov->dest = new_operand(GP_REGISTER_OPERAND);
-	mov->src = new_operand(GP_REGISTER_OPERAND);
+	mov->operand_volume_min[0] = 8;
+	mov->operand_volume_min[1] = 8;
+	mov->operand_volume_max[0] = 8;
+	mov->operand_volume_max[1] = 8;
 	mov->instruct[0] = get_rex(1, 0, 0, 0);
 	mov->instruct[1] = 0x89;
 	mov->len = 2;
@@ -97,7 +107,5 @@ void	add_mov_instructs(t_instruct_set *instruct_set) {
 void	free_mov_instruct(t_mov_instruct *instruct) {
 	t_mov_instruct	*mov = instruct;
 	free(mov->name);
-	free(mov->src.bin);
-	free(mov->dest.bin);
 	free(mov);
 }

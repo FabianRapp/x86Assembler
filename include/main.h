@@ -2,7 +2,6 @@
 
 #include <string.h>
 #include <assert.h>
-#include <libft.h>
 #include <fcntl.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -11,12 +10,15 @@
 #include <unistd.h>
 #include <ctype.h>
 
+#include <libft.h>
 #include <instruction_set.h>
+#include <operands.h>
 
 typedef struct s_main {
-	char				*input;
-	t_instruct_set	instruct_set;
-	int					output;
+	char					*input;
+	const t_instruct_set	instruct_set;
+	const t_operand_set		operand_set;
+	int						output;
 }	t_main;
 
 void	init(t_main *data, int ac, char *av[]);

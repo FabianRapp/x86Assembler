@@ -1,4 +1,5 @@
 libft
+tmp_out
 assembler
 *.out
 compile_commands.json

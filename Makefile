@@ -8,6 +8,7 @@ LIBFT_DIR = libft/
 LIBFT 	=	$(LIBFT_DIR)libft.a
 INCLUDES=	-I./include \
 			-I./include/instruction_set \
+			-I./include/instruction_set/operands \
 			-I./libft \
 
 ifeq ($(OS), Darwin)
@@ -24,8 +25,10 @@ SRC_INIT := \
 
 SRC_INSTRUCTION_SET := \
 	instruction_set/instruction_set.c \
-	instruction_set/operands.c \
 	instruction_set/mov.c \
+	instruction_set/operands/init.c \
+	instruction_set/operands/cleanup.c \
+	instruction_set/operands/gp_reg_operand.c \
 
 SOURCE_FILES := \
 	$(SRC_MAIN) \

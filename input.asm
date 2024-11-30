@@ -1,2 +1,1 @@
-movq %rax, %rbx
-movl %eax, %ebx
+movw %ax, %dx
