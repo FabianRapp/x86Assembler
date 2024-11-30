@@ -10,7 +10,7 @@
 #include <instruction_types.h>
 
 
+void	add_instruct(t_instruct_set *instruct_set, t_instruct instruct);
 void	add_mov_instructs(t_instruct_set *instruct_set);
-void	free_mov_instruct(t_mov_instruct *instruct);
 
 #endif // MOV_H

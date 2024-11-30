@@ -7,7 +7,7 @@ void	cleanup(t_main *data) {
 	close(data->output);
 }
 
-bool	sep(char c) {
+static bool	sep(char c) {
 	return (isspace(c));
 }
 

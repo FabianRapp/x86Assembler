@@ -28,10 +28,11 @@ static t_operand	_new_operand(t_operand_set set, char *operand_str) {
 
 t_operand_set	new_operand_set(void) {
 	t_operand_set	set = {
-		.set = dyn_arr_init(sizeof(t_operand_type), 0),
+		.set = dyn_arr_init(sizeof(t_operand_type), 1),
 		.new_operand = _new_operand,
 	};
 	assert(set.set && "malloc fail");
 	_add_gp_reg_type(&set);
 	return (set);
 }
+
