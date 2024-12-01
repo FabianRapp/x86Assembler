@@ -9,6 +9,7 @@ LIBFT 	=	$(LIBFT_DIR)libft.a
 INCLUDES=	-I./include \
 			-I./include/instruction_set \
 			-I./include/instruction_set/operands \
+			-I./include/elf \
 			-I./libft \
 
 ifeq ($(OS), Darwin)
@@ -30,6 +31,7 @@ SRC_INSTRUCTION_SET := \
 	instruction_set/operands/cleanup.c \
 	instruction_set/operands/gp_reg_operand.c \
 	instruction_set/operands/empty_operand.c \
+	elf/elf_header.c \
 
 SOURCE_FILES := \
 	$(SRC_MAIN) \
