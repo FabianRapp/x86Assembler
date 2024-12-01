@@ -11,6 +11,7 @@
 
 
 void	add_instruct(t_instruct_set *instruct_set, t_instruct instruct);
-void	add_mov_instructs(t_instruct_set *instruct_set);
+void	add_mov_instructs(t_instruct_set *instruct_set,
+			t_operand_set operand_sets[SET_OPERAND_COUNT]);
 
 #endif // MOV_H

@@ -41,7 +41,15 @@ void	get_input(t_main *data, int ac, char *av[]) {
 	read_file(input_file, &data->input);
 }
 
+
 void	init(t_main *data, int ac, char *av[]) {
+	bzero(data, sizeof *data);
+
+	init_leaf_operand_sets(data->leaf_operand_sets);
+	data->instruct_set = init_instruct_set(data->leaf_operand_sets);
+
+	//data->operand_set = new_operand_set(SET_OPERAND_MASTER);
+
 	get_input(data, ac, av);
 
 	char	*output_path = "out.bin";

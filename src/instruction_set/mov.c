@@ -11,7 +11,7 @@ t_instruct	new_mov_instruct(char *name) {
 	mov.name = strdup(name);
 	assert(mov.name && "malloc fail");
 
-	mov.operand_combinations = dyn_arr_init(sizeof(t_operand_combination), 0);
+	mov.operand_combinations = dyn_arr_init2(3, sizeof(t_operand_combination), 0, free_operand_combination);
 	return (mov);
 }
 /*
@@ -40,35 +40,65 @@ uint8_t	get_rex(bool w, bool r, bool x, bool b) {
 }
 
 //v1: refactor, correct and extend later
-void	add_mov_instructs(t_instruct_set *instruct_set) {
-	t_instruct	mov;
-
+void	add_mov_instructs(t_instruct_set *instruct_set,
+			t_operand_set operand_sets[SET_OPERAND_COUNT])
+{
 	//move gp-register to gp-register
-	mov = new_mov_instruct("mov");
-	mov.instruct[0] = get_rex(1, 0, 0, 0);
-	//todo: incorrect*****
-	mov.instruct[1] = 0x89;
-	mov.len = 2;
-	//********************
-	add_instruct(instruct_set, mov);
+	{
+		//TODO IDK THIS 
+		t_instruct	mov;
+		mov = new_mov_instruct("mov");
+		mov.instruct[0] = get_rex(1, 0, 0, 0);
+		//todo: incorrect*****
+		mov.instruct[1] = 0x89;
+		mov.len = 2;
+		//********************
+		add_instruct(instruct_set, mov);
+	}
+	{
+		t_instruct	mov;
+		mov = new_mov_instruct("movb");
+		add_operand_combination(&mov,
+			add_set_to_combination(new_operand_combination(),
+				operand_sets + SET_GP_REG_1, operand_sets + SET_GP_REG_1)
+		);
+		mov.instruct[0] = 0x88;
+		add_instruct(instruct_set, mov);
+	}
+	{
+		t_instruct	mov;
+		mov = new_mov_instruct("movw");
+		add_operand_combination(&mov,
+			add_set_to_combination(new_operand_combination(),
+				operand_sets + SET_GP_REG_2, operand_sets + SET_GP_REG_2)
+		);
+		mov.instruct[0] = 0x89;
+		add_instruct(instruct_set, mov);
+	}
 
-	mov = new_mov_instruct("movb");
-	mov.instruct[0] = 0x88;
-	add_instruct(instruct_set, mov);
+	{
+		t_instruct	mov;
+		mov = new_mov_instruct("movl");
+		add_operand_combination(&mov,
+			add_set_to_combination(new_operand_combination(),
+				operand_sets + SET_GP_REG_4, operand_sets + SET_GP_REG_4)
+		);
+		mov.instruct[0] = 0x89;
+		add_instruct(instruct_set, mov);
+	}
 
-	mov = new_mov_instruct("movw");
-	mov.instruct[0] = 0x89;
-	add_instruct(instruct_set, mov);
-
-	mov = new_mov_instruct("movl");
-	mov.instruct[0] = 0x89;
-	add_instruct(instruct_set, mov);
-
-	mov = new_mov_instruct("movq");
-	mov.instruct[0] = get_rex(1, 0, 0, 0);
-	mov.instruct[1] = 0x89;
-	mov.len = 2;
-	add_instruct(instruct_set, mov);
+	{
+		t_instruct	mov;
+		mov = new_mov_instruct("movq");
+		add_operand_combination(&mov,
+			add_set_to_combination(new_operand_combination(),
+				operand_sets + SET_GP_REG_8, operand_sets + SET_GP_REG_8)
+		);
+		mov.instruct[0] = get_rex(1, 0, 0, 0);
+		mov.instruct[1] = 0x89;
+		mov.len = 2;
+		add_instruct(instruct_set, mov);
+	}
 
 	//move segment-regster to gp-register
 	//move gp-register to segment-register

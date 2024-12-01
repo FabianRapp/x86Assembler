@@ -29,6 +29,7 @@ SRC_INSTRUCTION_SET := \
 	instruction_set/operands/init.c \
 	instruction_set/operands/cleanup.c \
 	instruction_set/operands/gp_reg_operand.c \
+	instruction_set/operands/empty_operand.c \
 
 SOURCE_FILES := \
 	$(SRC_MAIN) \
@@ -51,13 +52,16 @@ YELLOW	=	\033[33m
 CYAN	=	\033[0;36m
 CLEAR	=	\033[0m
 
-.PHONY: all clean fclean ffclean test redebug print_vars compile_raw_test
+.PHONY: all clean fclean ffclean test redebug print_vars compile_raw_test cmp
 
 all: $(NAME)
 
 $(NAME): $(OBJECTS) $(LIBFT)
 	@$(CC) $(CFLAGS) $(INCLUDES) $(OBJECTS) $(LIBFT) -o $(NAME) $(CFLAGS)
 	@echo "$(GREEN)$(NAME) compiled!$(CLEAR)"
+
+cmp:
+	make raw_test && cat input.asm && xxd -b test.bin && ./assembler >tmp_out && xxd -b out.bin
 
 print_vars:
 	#@echo "$(YELLOW)REFLECTIONS: $(CLEAR)$(GREEN)$(REFLECTIONS) $(CLEAR)$(YELLOW)(any integer >= 0) $(CLEAR)"

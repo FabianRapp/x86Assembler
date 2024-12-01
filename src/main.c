@@ -1,16 +1,24 @@
 #include <main.h>
 
-void	cleanup(t_main *data) {
+noreturn void	cleanup(t_main *data) {
 	free(data->input);
 	free_instruct_set(data->instruct_set);
-	free_operand_set(data->operand_set);
+	//free_operand_set(&data->operand_set);
 	close(data->output);
+	exit(0);
 }
 
 static bool	sep(char c) {
 	return (isspace(c));
 }
 
+//ignore compiler warnong the the 'const' return val is ignored to keep it
+//for readbility
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wignored-qualifiers"
+
+//DO NOT modify the returned instruction: pointers lead to allocation in the
+//main instruction set
 const t_instruct	get_basic_instruct(t_main *program, char *line) {
 	for (size_t i = 0; i < program->instruct_set.size; i++) {
 		const t_instruct	instruct = program->instruct_set.set[i];
@@ -23,33 +31,48 @@ const t_instruct	get_basic_instruct(t_main *program, char *line) {
 	__builtin_unreachable();
 }
 
-void	output_2gp_regs(t_main *data, t_operand operand[2],
-			int operand_count) {
-	if (operand[0].type == GP_REG && operand[1].type == GP_REG) {
-		uint8_t	bits = operand[0].binary_bits + operand[1].binary_bits;
-		assert(bits <= 8
-			&& "unsupported operand opcode size: larger than 1 byte");
-		uint8_t	mask = ~((1 << bits) - 1);// to set the unused bits with 1
-		uint8_t	code = mask
-			| (//shift the register codes into position
-				(operand[0].op_code[0] << operand[0].binary_bits)
-				| (operand[1].op_code[0])
-			);
-		assert(write(data->output, &code, 1) != -1
-			&& "write fail");
-		return ;
-	}
+#pragma GCC diagnostic pop
+
+void	output_2gp_regs(t_main *data, t_operand operand[2])
+{
+	uint8_t	bits = operand[0].binary_bits + operand[1].binary_bits;
+	assert(bits == 6
+		&& "unsupported operand opcode size: larger than 1 byte");
+	uint8_t	code = ~((1 << bits) - 1);// to set the unused bits with 1
+	//shift the register codes into position
+	code |= ((operand[0].op_code[0] << operand[0].binary_bits)
+			| (operand[1].op_code[0]));
+	assert(write(data->output, &code, 1) != -1
+		&& "write fail");
 }
 
+
+//TODO: think of something scaleable, maye refactor opernad typinf in some way
 void	output_operands(t_main *data, t_operand operand[2],
 		int operand_count)
 {
 	if (operand_count == 2) {
 		printf("%s\n%s\n",operand[0].content, operand[1].content);
-		if (operand[0].type == GP_REG && operand[1].type == GP_REG) {
-			output_2gp_regs(data, operand, operand_count);
-			return ;
+		switch (operand[0].type) {
+			case (GP_REG1):
+			case (GP_REG2):
+			case (GP_REG4):
+			case (GP_REG8):
+				switch (operand[1].type) {
+					case (GP_REG1):
+					case (GP_REG2):
+					case (GP_REG4):
+					case (GP_REG8):
+						output_2gp_regs(data, operand);
+						break ;
+				default:
+					assert(0 && "opernad 1 has not implemented type");
+				}
+				break ;
+			default:
+				assert(0 && "opernad 0 has not implemented type");
 		}
+		return ;
 	}
 	printf("oerpand_count: %d\n", operand_count);
 	assert(0 && "unsupported operand combination");
@@ -90,18 +113,25 @@ void	process_instruction(t_main *data, const char *instruction_str) {
 	for (size_t part_idx = 1;
 		(operand_str = instruct_parts[part_idx]); part_idx++)
 	{
-		assert(operand_idx < 2 && "more than two operands per instruction");
 		if (operand_str[strlen(operand_str) - 1] == ',') {
 			operand_str[strlen(operand_str) - 1] = 0;
 		}
-		operands[operand_idx] = data->operand_set.new_operand(
-			data->operand_set, operand_str);
 		operand_idx++;
 	}
-	//todo:implement valid operand pair list for instructions and verify operands
+	if (operand_idx == 0) {
+		//todo
+		assert(0);
+	} else if (operand_idx == 1) {
+		//todo
+		assert(0);
+	} else if (operand_idx == 2) {
+		new_operand(instruct, instruct_parts[1], instruct_parts[2], operands);
+	} else {
+		assert(0 && "more than two operands per instruction");
+	}
 	output_opcode(data, instruct, operands, operand_idx);
 	for (int i = 0; i < operand_idx; i++) {
-		free_operand(operands[i]);
+		free_operand(operands + i);
 	}
 	//assert(operand_idx <= instruct->max_operands
 	//	&& operand_idx >= instruct->min_operands && "wrong operand count");
@@ -109,11 +139,8 @@ void	process_instruction(t_main *data, const char *instruction_str) {
 }
 
 int	main(int ac, char *av[]) {
-	t_main	data = {
-		.input = NULL,
-		.instruct_set = init_instruct_set(),
-		.operand_set = new_operand_set(),
-	};
+	t_main	data;
+
 	init(&data, ac, av);
 	char	**lines = ft_split(data.input, '\n');
 	assert(lines && "malloc fail");
@@ -123,7 +150,6 @@ int	main(int ac, char *av[]) {
 	}
 	ft_free_2darr(lines);
 	cleanup(&data);
-	return (0);
 }
 
 
