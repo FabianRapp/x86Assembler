@@ -124,7 +124,6 @@ void	init_leaf_operand_sets(
 
 	leaf_operand_sets[SET_OPERAND_ERROR] = new_operand_set(SET_OPERAND_ERROR);
 	while (cur_type != SET_OPERAND_ERROR) {
-		leaf_operand_sets[cur_type] = new_operand_set(cur_type);
 		switch (cur_type) {
 			//case (SET_OPERAND_MASTER):
 			case (SET_OPERAND_ERROR):
@@ -158,8 +157,8 @@ t_operand_combination	new_operand_combination(void) {
 	t_operand_combination	combi = {
 		.left_count = 0,
 		.right_count = 0,
-		.left = dyn_arr_init2(3, sizeof(t_operand_set), 0, free_operand_set),
-		.right = dyn_arr_init2(3, sizeof(t_operand_set), 0, free_operand_set),
+		.left = dyn_arr_init2(3, sizeof(t_operand_set), 0, NULL),
+		.right = dyn_arr_init2(3, sizeof(t_operand_set), 0, NULL),
 	};
 	assert(combi.left && combi.right && "malloc fail");
 	return (combi);
@@ -172,11 +171,12 @@ t_operand_combination	add_set_to_combination(t_operand_combination combi,
 			const t_operand_set *add_left, const t_operand_set *add_right)
 {
 	if (add_left) {
-		dyn_arr_add_save((void**)&combi.left, (t_operand_set *)add_left,
-			combi.left_count++);
+		t_operand_set	left = *add_left;
+		dyn_arr_add_save((void**)&combi.left, &left, combi.left_count++);
 	}
 	if (add_right) {
-		dyn_arr_add_save((void**)&combi.right, (t_operand_set *)add_right,
+		t_operand_set	right = *add_right;
+		dyn_arr_add_save((void**)&combi.right, &right,
 			combi.right_count++);
 	}
 	return (combi);

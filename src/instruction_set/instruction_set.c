@@ -21,13 +21,8 @@ t_instruct_set	init_instruct_set(t_operand_set operand_sets[SET_OPERAND_COUNT])
 {
 	t_instruct_set	instruct_set;
 	instruct_set.size = 0;
-	/*
-		TODO: i think i have to make a function here that frees
-		not base operand sets/sets with sub sets but it must not free the sets
-		in operand_sets[]
-	*/
-	//instruct_set.set = dyn_arr_init2(3, sizeof(t_instruct), 0, free_instruct);
-	instruct_set.set = dyn_arr_init2(3, sizeof(t_instruct), 0, NULL);
+	instruct_set.set = dyn_arr_init2(3, sizeof(t_instruct), 0, free_instruct);
+	//instruct_set.set = dyn_arr_init2(3, sizeof(t_instruct), 0, NULL);
 	assert(instruct_set.set && "malloc fail");
 
 	add_mov_instructs(&instruct_set, operand_sets);

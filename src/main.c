@@ -5,6 +5,9 @@ noreturn void	cleanup(t_main *data) {
 	free_instruct_set(data->instruct_set);
 	//free_operand_set(&data->operand_set);
 	close(data->output);
+	for (t_operand_set_type i = 0; i < SET_OPERAND_COUNT; i++) {
+		free_operand_set(data->leaf_operand_sets + i);
+	}
 	exit(0);
 }
 
