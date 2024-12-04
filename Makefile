@@ -31,6 +31,7 @@ SRC_INSTRUCTION_SET := \
 	instruction_set/operands/cleanup.c \
 	instruction_set/operands/gp_reg_operand.c \
 	instruction_set/operands/empty_operand.c \
+	lexer/lexer.c \
 	elf/elf_header.c \
 
 SOURCE_FILES := \
@@ -42,6 +43,9 @@ SOURCES = $(SOURCE_FILES:%=$(SRC_DIR)%)
 
 OBJ_DIR := o_files/
 OBJECTS = $(SOURCE_FILES:%.c=$(OBJ_DIR)%.o)
+
+ASM_DIR := asm/
+ASM_FILES = $(SOURCE_FILES:%.c=$(ASM_DIR)%.s)
 
 TEST_INPUT := input.asm
 
@@ -61,6 +65,9 @@ all: $(NAME)
 $(NAME): $(OBJECTS) $(LIBFT)
 	@$(CC) $(CFLAGS) $(INCLUDES) $(OBJECTS) $(LIBFT) -o $(NAME) $(CFLAGS)
 	@echo "$(GREEN)$(NAME) compiled!$(CLEAR)"
+
+asm: $(ASM_FILES)
+	@echo "$(GREEN)Compiled as files!$(CLEAR)"
 
 cmp:
 	make raw_test && cat input.asm && xxd -b test.bin && ./assembler >tmp_out && xxd -b out.bin
@@ -84,7 +91,9 @@ raw_test: $(TEST_INPUT)
 test: clean libft
 	make $(NAME_TEST) SRC_MAIN="$(SRC_TEST_MAIN)" NAME=$(NAME_TEST)
 
+
 clean:
+	@rm -f $(ASM_FILES)
 	@rm -rf $(OBJ_DIR)
 #@if [ -d $(OBJ_DIR) ]; then rmdir $(OBJ_DIR); fi
 	@if [ -d $(LIBFT_DIR) ]; then cd libft && make clean; fi
@@ -109,9 +118,14 @@ prof: fclean
 	@make CFLAGS="$(FLAGS_SPEED) -g -pg" CC=gcc
 
 ###utils
+
 $(OBJ_DIR)%.o: $(SRC_DIR)%.c
 	@mkdir -p $(@D)
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(ASM_DIR)%.s: $(SRC_DIR)%.c
+	@mkdir -p $(@D)
+	@gcc $(INCLUDES) -S -m64 $< -o $@
 
 $(LIBFT): $(LIBFT_DIR)
 	@cd libft && make CFLAGS="$(CFLAGS)"

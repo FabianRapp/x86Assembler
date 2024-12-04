@@ -12,6 +12,7 @@
 #include <stdnoreturn.h>
 
 #include <libft.h>
+#include <lexer.h>
 #include <instruction_set.h>
 #include <operands.h>
 

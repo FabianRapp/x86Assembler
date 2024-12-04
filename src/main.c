@@ -144,16 +144,84 @@ void	process_instruction(t_main *data, const char *instruction_str) {
 	ft_free_2darr(instruct_parts);
 }
 
+void	rm_head(t_token **head) {
+	t_token	*tmp = *head;
+
+	*head = (*head)->next;
+	tmp->next = 0;
+	free_token(tmp);
+}
+
+//splits the list and advances the head
+//command list will need to be freed seperatly
+t_token	*next_command_block(t_token **head) {
+	t_token_type	head_type = (*head)->type;
+
+	if (head_type == TOKEN_WHITESPACE) {
+		rm_head(head);
+		head_type = (*head)->type;
+	}
+	if (head_type == TOKEN_EOF) {
+		return (NULL);
+	}
+	bool	valid;
+	valid = head_type == TOKEN_IDENTIFIER
+		|| head_type == TOKEN_DIRECTIVE
+		|| (head_type == TOKEN_NB_LITERAL 
+			&& (*head)->next && (*head)->next->type == TOKEN_COLUMN)
+	;
+	if (!valid) {
+		print_token(*head);
+	}
+	assert(valid && "excepted a token to begin command block");
+	t_token	*command = *head;
+	t_token	*cur = *head;
+	while (cur->next->type != TOKEN_EOF && cur->next->type != TOKEN_SEP) {
+		cur = cur->next;
+	}
+	*head = cur->next;
+	cur->next = NULL;
+	if ((*head)->type == TOKEN_SEP) {
+		cur = *head;
+		*head = cur->next;
+		cur->next = NULL;
+		free_token(cur);
+	}
+
+	return (command);
+}
+
+void	parser(t_main *data) {
+	t_token	*head_token = lexer(data->input);
+
+	t_token	*command;
+	size_t	idx = 0;
+
+	do {
+		command = next_command_block(&head_token);
+		printf("command %lu:\n", idx++);
+		print_token_list(command);
+		free_token_list(command);
+	} while (command);
+
+
+	printf("remaining head:\n");
+	print_token_list(head_token);
+	free_token_list(head_token);
+}
+
 int	main(int ac, char *av[]) {
 	t_main	data;
 
 	init(&data, ac, av);
-	char	**lines = ft_split(data.input, '\n');
-	assert(lines && "malloc fail");
-	char	*line;
-	for (size_t idx_line = 0; (line = lines[idx_line]); idx_line++) {
-		process_instruction(&data, line);
-	}
-	ft_free_2darr(lines);
+	parser(&data);
+
+	//char	**lines = ft_split(data.input, '\n');
+	//assert(lines && "malloc fail");
+	//char	*line;
+	//for (size_t idx_line = 0; (line = lines[idx_line]); idx_line++) {
+	//	process_instruction(&data, line);
+	//}
+	//ft_free_2darr(lines);
 	cleanup(&data);
 }
