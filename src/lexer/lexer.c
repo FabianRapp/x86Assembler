@@ -1,17 +1,20 @@
 #include <lexer.h>
 
-const char *token_type_to_str(t_token_type token_type) {
-    switch (token_type) {
+const char *token_type_to_str(t_token_type token) {
+    switch (token) {
         case TOKEN_UNKNOWN:       return "TOKEN_UNKNOWN";
         case TOKEN_SEP:           return "TOKEN_SEP";
-        case TOKEN_DIRECTIVE:		return "TOKEN_DIRECTIVE";
         case TOKEN_COLUMN:        return "TOKEN_COLUMN";
+        case TOKEN_MATH_OP:       return "TOKEN_MATH_OP";
         case TOKEN_COMMA:         return "TOKEN_COMMA";
+        case TOKEN_COMMENT:       return "TOKEN_COMMENT";
         case TOKEN_WHITESPACE:    return "TOKEN_WHITESPACE";
         case TOKEN_REG:           return "TOKEN_REG";
         case TOKEN_DOLLAR:        return "TOKEN_DOLLAR";
         case TOKEN_STR_LITERAL:   return "TOKEN_STR_LITERAL";
+        case TOKEN_CHAR_LITERAL:  return "TOKEN_CHAR_LITERAL";
         case TOKEN_NB_LITERAL:    return "TOKEN_NB_LITERAL";
+        case TOKEN_DIRECTIVE:     return "TOKEN_DIRECTIVE";
         case TOKEN_IDENTIFIER:    return "TOKEN_IDENTIFIER";
         case TOKEN_BRACE_OPEN:    return "TOKEN_BRACE_OPEN";
         case TOKEN_BRACE_CLOSE:   return "TOKEN_BRACE_CLOSE";
@@ -129,7 +132,7 @@ bool	lex_math_op(t_lexer *lex, t_token *token) {
 	for (size_t i = 0; i < sizeof signs / sizeof signs[0]; i++) {
 		if (lex->cur == signs[i]) {
 			token->type = TOKEN_MATH_OP;
-			lex_read(lex);
+			lex_read_append(lex, &token->str);
 			return (true);
 		}
 	}

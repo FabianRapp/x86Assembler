@@ -221,6 +221,15 @@ void	rm_whitespace(t_token **head) {
 	}
 }
 
+static bool	type_in_set(t_token_type type, t_token_type *set, size_t set_size) {
+	for (size_t idx = 0; idx < set_size; idx++) {
+		if (type == set[idx]) {
+			return (true);
+		}
+	}
+	return (false);
+}
+
 //clones the given list until the operand is terminated and returns the clone
 t_token	*isolate_operand(t_token **list) {
 	if (!*list) {
@@ -232,14 +241,68 @@ t_token	*isolate_operand(t_token **list) {
 	head->next = 0;
 
 	t_token	*cur = head;
+	t_token_type	scopes_opening[] = {
+		TOKEN_BRACE_OPEN,
+	};
+	size_t			openings_size = 
+						sizeof scopes_opening / sizeof scopes_opening[0];
+	t_token_type	scopes_closing[] = {
+		TOKEN_BRACE_CLOSE,
+	};
+	size_t			closings_size = 
+						sizeof scopes_closing / sizeof scopes_closing[0];
+	t_token_type	sub_stats[] = {
+		TOKEN_DOLLAR,
+		TOKEN_MATH_OP,
+		TOKEN_COMMA,
+		TOKEN_DIRECTIVE,
+		TOKEN_REG,
+		TOKEN_NB_LITERAL,
+		TOKEN_IDENTIFIER,
+		TOKEN_COLUMN,
+	};
+	size_t			sub_stats_size = sizeof sub_stats / sizeof sub_stats[0];
+	t_token_type	scopes[30];
+	size_t			scope_idx = 0;
+
+	t_token			*last = NULL;
+
 	//todo: implement operand parsing
 	while (*list) {
+		if (!scope_idx && cur->type == TOKEN_COMMA) {
+			if (last) {
+				last->next = NULL;
+				free_token(cur);
+				return (head);
+			}
+			free_token(cur);
+			return (NULL);
+		}
+		if (type_in_set(cur->type, sub_stats, sub_stats_size)) {
+			//simply append
+		} else if (type_in_set(cur->type, scopes_opening, openings_size)) {
+			scopes[scope_idx++] = cur->type;
+		} else if (type_in_set(cur->type, scopes_closing, closings_size)) {
+			if (scopes[--scope_idx] != cur->type - 1) {
+				printf("******\n");
+				printf("%s vs %s\n", token_type_to_str(scopes[scope_idx]), token_type_to_str(cur->type));
+				printf("scope_idx: %lu\n", scope_idx);
+				print_token(cur);
+				assert(0 && "expected diffrent scope termination");
+			}
+		} else {
+			printf("******\n");
+			print_token(cur);
+			assert(0 && "operand sub part in category");
+		}
 		cur->next = *list;
+		last = cur;
 		cur = cur->next;
 		*list = (*list)->next;
 		cur->next = 0;
+		assert(scope_idx < sizeof scopes / sizeof scopes[0]
+			&& "scope stack to small");
 	}
-
 	return (head);
 }
 
@@ -249,17 +312,21 @@ void	parse_command(t_token **head) {
 	*head = (*head)->next;
 	identifier->next = 0;
 
-
 	//dynamic array of lists of operands
-	t_token	**operands = dyn_arr_init2(3, sizeof(t_token *), 2, free_token_list2);
+	t_token	**operands = dyn_arr_init2(3, sizeof(t_token *), 0, free_token_list2);
 
-	if (*head) {
-		printf("CUR: ");
-		print_token(*head);
+	size_t	operand_count = 0;
+	while (*head) {
 		t_token	*operand = isolate_operand(head);
-		dyn_arr_add_save((void**)&operands, &operand, dyn_arr_get_len(operands));
+		dyn_arr_add_save((void**)&operands, &operand, operand_count++);
 	}
-
+	printf("\nline %lu: %s\n", identifier->debug_info.line_idx, identifier->debug_info.line);
+	printf("Command: ");
+	print_token(identifier);
+	for (size_t idx = 0; idx < operand_count; idx++) {
+		printf("Operand %lu: \n", idx);
+		print_token_list(operands[idx]);
+	}
 	dyn_arr_free((void **)&operands);
 	free_token(identifier);
 }
@@ -268,8 +335,6 @@ void	parser(t_main *data) {
 	t_token	*head_token = lexer(data->input);
 
 	t_token	*section;
-	size_t	idx = 1;
-
 
 	section = next_command_block(&head_token);
 	while (section || head_token) {
@@ -279,10 +344,8 @@ void	parser(t_main *data) {
 		}
 		int	line_type = verify_valid_head(section);
 		assert(line_type && "excepted a token to begin section block");
-		printf("line %lu:\n", idx++);
 		switch (line_type) {
 			case (COMMAND_TYPE):
-				print_token_list(section);
 				parse_command(&section);
 				break ;
 			case (DIRECTIVE_TYPE):
