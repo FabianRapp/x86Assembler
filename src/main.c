@@ -223,31 +223,45 @@ void	rm_whitespace(t_token **head) {
 
 //clones the given list until the operand is terminated and returns the clone
 t_token	*isolate_operand(t_token **list) {
-	t_token	*operand = clone_token(*list);
+	if (!*list) {
+		return (NULL);
+	}
 
+	t_token	*head = *list;
 	*list = (*list)->next;
-	return (operand);
+	head->next = 0;
+
+	t_token	*cur = head;
+	//todo: implement operand parsing
+	while (*list) {
+		cur->next = *list;
+		cur = cur->next;
+		*list = (*list)->next;
+		cur->next = 0;
+	}
+
+	return (head);
 }
 
-void	parse_command(t_token **line_head) {
-	rm_whitespace(line_head);
-	t_token	identifier = **line_head;
-	identifier.next = 0;
+void	parse_command(t_token **head) {
+	rm_whitespace(head);
+	t_token	*identifier = *head;
+	*head = (*head)->next;
+	identifier->next = 0;
+
 
 	//dynamic array of lists of operands
 	t_token	**operands = dyn_arr_init2(3, sizeof(t_token *), 2, free_token_list2);
 
-	t_token	*cur;
-	cur = (*line_head)->next;
-	while (cur) {
+	if (*head) {
 		printf("CUR: ");
-		print_token(cur);
-		t_token	*operand = isolate_operand(&cur);
+		print_token(*head);
+		t_token	*operand = isolate_operand(head);
 		dyn_arr_add_save((void**)&operands, &operand, dyn_arr_get_len(operands));
 	}
 
-
 	dyn_arr_free((void **)&operands);
+	free_token(identifier);
 }
 
 void	parser(t_main *data) {
@@ -256,8 +270,13 @@ void	parser(t_main *data) {
 	t_token	*section;
 	size_t	idx = 1;
 
+
 	section = next_command_block(&head_token);
 	while (section || head_token) {
+		if (!section) {
+			section = next_command_block(&head_token);
+			continue ;
+		}
 		int	line_type = verify_valid_head(section);
 		assert(line_type && "excepted a token to begin section block");
 		printf("line %lu:\n", idx++);
@@ -267,6 +286,7 @@ void	parser(t_main *data) {
 				parse_command(&section);
 				break ;
 			case (DIRECTIVE_TYPE):
+				break ;
 			case (LABEL_TYPE):
 				break ;
 			default:
