@@ -152,6 +152,25 @@ void	rm_head(t_token **head) {
 	free_token(tmp);
 }
 
+
+int	verify_valid_head(t_token *head) {
+	int	valid;
+	/* when adding morecheck the macros LABEL_TYPE, DIRECTIVE_TYPE ... to
+	 be compatible */
+	int	label = (head->type == TOKEN_NB_LITERAL
+			&& head->next && head->next->type == TOKEN_COLUMN) << 0;
+	int	directive = (head->type == TOKEN_DIRECTIVE) << 1;
+	int	command = (head->type == TOKEN_IDENTIFIER) << 2;
+
+	int	all = (label | directive | command);
+	valid = ((all - 1) & all) == 0;
+	if (!valid) {
+		print_token(head);
+		return (0);
+	}
+	return (all);
+}
+
 //splits the list and advances the head
 //command list will need to be freed seperatly
 t_token	*next_command_block(t_token **head) {
@@ -162,47 +181,100 @@ t_token	*next_command_block(t_token **head) {
 		head_type = (*head)->type;
 	}
 	if (head_type == TOKEN_EOF) {
+		free_token(*head);
+		*head = NULL;
 		return (NULL);
 	}
-	bool	valid;
-	valid = head_type == TOKEN_IDENTIFIER
-		|| head_type == TOKEN_DIRECTIVE
-		|| (head_type == TOKEN_NB_LITERAL 
-			&& (*head)->next && (*head)->next->type == TOKEN_COLUMN)
-	;
-	if (!valid) {
-		print_token(*head);
-	}
-	assert(valid && "excepted a token to begin command block");
+
 	t_token	*command = *head;
 	t_token	*cur = *head;
 	while (cur->next->type != TOKEN_EOF && cur->next->type != TOKEN_SEP) {
 		cur = cur->next;
 	}
-	*head = cur->next;
+	if (cur->next->next) {
+		*head = cur->next->next;
+	} else {
+		*head = NULL;
+	}
+	free_token(cur->next);
 	cur->next = NULL;
-	if ((*head)->type == TOKEN_SEP) {
-		cur = *head;
-		*head = cur->next;
-		cur->next = NULL;
-		free_token(cur);
+	return (command);
+}
+
+void	rm_whitespace(t_token **head) {
+	if ((*head)->type == TOKEN_WHITESPACE) {
+		rm_head(head);
+	}
+	
+	t_token	*cur = *head;
+	t_token	*tmp;
+
+	while (cur->next) {
+		if (cur->next->type == TOKEN_WHITESPACE) {
+			tmp = cur->next;
+			cur->next = cur->next->next;
+			tmp->next = NULL;
+			free_token(tmp);
+		} else {
+			cur = cur->next;
+		}
+	}
+}
+
+//clones the given list until the operand is terminated and returns the clone
+t_token	*isolate_operand(t_token **list) {
+	t_token	*operand = clone_token(*list);
+
+	*list = (*list)->next;
+	return (operand);
+}
+
+void	parse_command(t_token **line_head) {
+	rm_whitespace(line_head);
+	t_token	identifier = **line_head;
+	identifier.next = 0;
+
+	//dynamic array of lists of operands
+	t_token	**operands = dyn_arr_init2(3, sizeof(t_token *), 2, free_token_list2);
+
+	t_token	*cur;
+	cur = (*line_head)->next;
+	while (cur) {
+		printf("CUR: ");
+		print_token(cur);
+		t_token	*operand = isolate_operand(&cur);
+		dyn_arr_add_save((void**)&operands, &operand, dyn_arr_get_len(operands));
 	}
 
-	return (command);
+
+	dyn_arr_free((void **)&operands);
 }
 
 void	parser(t_main *data) {
 	t_token	*head_token = lexer(data->input);
 
-	t_token	*command;
-	size_t	idx = 0;
+	t_token	*section;
+	size_t	idx = 1;
 
-	do {
-		command = next_command_block(&head_token);
-		printf("command %lu:\n", idx++);
-		print_token_list(command);
-		free_token_list(command);
-	} while (command);
+	section = next_command_block(&head_token);
+	while (section || head_token) {
+		int	line_type = verify_valid_head(section);
+		assert(line_type && "excepted a token to begin section block");
+		printf("line %lu:\n", idx++);
+		switch (line_type) {
+			case (COMMAND_TYPE):
+				print_token_list(section);
+				parse_command(&section);
+				break ;
+			case (DIRECTIVE_TYPE):
+			case (LABEL_TYPE):
+				break ;
+			default:
+				assert(0 && "unknown line type");
+		}
+		free_token_list(section);
+		section = next_command_block(&head_token);
+	}
 
 
 	printf("remaining head:\n");

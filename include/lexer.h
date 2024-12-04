@@ -10,6 +10,10 @@
 
 #include <libft.h>
 
+#define LABEL_TYPE 0x1
+#define DIRECTIVE_TYPE 0x2
+#define COMMAND_TYPE 0x4
+
 typedef enum e_token_type {
 	TOKEN_UNKNOWN,
 	TOKEN_SEP,
@@ -54,8 +58,10 @@ typedef struct s_lexer {
 	t_debug_info	debug_info;
 }	t_lexer;
 
+t_token	*clone_token(t_token *in);
 void	free_token(t_token *token);
 void	free_token_list(t_token *head);
+void	free_token_list2(t_token **head);
 t_token *lexer(char *data);
 void	print_token_list(t_token *head);
 void	print_token(t_token *token);

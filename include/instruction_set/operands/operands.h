@@ -41,6 +41,7 @@ void	free_operand_type(t_operand_type *type);
 
 typedef struct s_operand {
 	enum e_operand_type		type;
+	t_operand				*sub_operands;
 	size_t					volume_size;//eg.:al:1, ax:2, eax:4, rax:8
 	uint8_t					op_code[20];//idk should be enough i think
 	size_t					binary_bits;//count of op_code bits

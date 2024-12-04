@@ -343,11 +343,40 @@ t_lexer	new_lexer(char *input) {
 	return (lex);
 }
 
+//unlinks the cloned token from the list
+t_token	*clone_token(t_token *in) {
+	assert(in && "tring to clone NULL");
+	t_token	*clone = ft_memdup(in, sizeof(t_token));
+	assert(clone && "malloc fail");
+	assert(in->debug_info.line && "no debug line info in token?");
+	clone->debug_info.line = strdup(clone->debug_info.line);
+	if (in->str) {
+		clone->str = strdup(clone->str);
+	}
+	assert((clone->str || !in->str) && clone->debug_info.line && "malloc fail");
+	clone->next = 0;
+	return (clone);
+}
+
 //frees the content and the struct itself
 void	free_token(t_token *token) {
 	free(token->debug_info.line);
 	free(token->str);
 	free(token);
+}
+
+void	free_token_list2(t_token **head) {
+	t_token	*cur = *head;
+
+	if (!cur) {
+		return ;
+	}
+	t_token	*next;
+	while (cur) {
+		next = cur->next;
+		free_token(cur);
+		cur = next;
+	}
 }
 
 void	free_token_list(t_token *head) {
@@ -363,8 +392,13 @@ void	free_token_list(t_token *head) {
 }
 
 void	print_token(t_token *token) {
-	printf("TOKEN: line %lu col %lu: %s: ", token->debug_info.line_idx,
-		token->debug_info.col_idx, token->debug_info.line);
+	if (!token) {
+		printf("TOKEN: WAS NULL!\n");
+		return ;
+	}
+	printf("%lu: ", token->debug_info.line_idx);
+	//printf("TOKEN: line %lu col %lu: %s: ", token->debug_info.line_idx,
+	//	token->debug_info.col_idx, token->debug_info.line);
 	printf("%s", token_type_to_str(token->type));
 	printf(": %s", token->str);
 	printf("\n");
