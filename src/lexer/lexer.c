@@ -211,6 +211,7 @@ bool	lex_reg(t_lexer *lex, t_token *token) {
 	while (isalnum(lex->cur)) {
 		lex_read_append(lex, &token->str);
 	}
+	ft_strtolower(token->str);
 	return (true);
 }
 
@@ -399,18 +400,28 @@ void	print_token(t_token *token) {
 		printf("TOKEN: WAS NULL!\n");
 		return ;
 	}
-	printf("%lu: ", token->debug_info.line_idx);
-	//printf("TOKEN: line %lu col %lu: %s: ", token->debug_info.line_idx,
-	//	token->debug_info.col_idx, token->debug_info.line);
 	printf("%s", token_type_to_str(token->type));
 	printf(": %s", token->str);
 	printf("\n");
 }
 
+void	print_token_list_indent(t_token *head, size_t indent) {
+	while (head) {
+		for (size_t i = 0; i < indent; i++) {
+			if (!(i % 4)) {
+				printf("|");
+			} else {
+				printf(" ");
+			}
+		}
+		print_token(head);
+		head = head->next;
+	}
+}
+
 void	print_token_list(t_token *head) {
 	size_t	idx = 0;
 	while (head) {
-		printf("%lu: ", idx++);
 		print_token(head);
 		head = head->next;
 	}

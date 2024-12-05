@@ -13,6 +13,7 @@
 
 #include <libft.h>
 #include <lexer.h>
+#include <ir.h>
 #include <instruction_set.h>
 #include <operands.h>
 
@@ -66,6 +67,7 @@ typedef struct s_op_code_bin {
 	uint8_t		escape_seq[2];
 	
 }	t_op_code_bin;
+
 
 
 typedef struct s_main {

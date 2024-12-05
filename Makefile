@@ -32,6 +32,7 @@ SRC_INSTRUCTION_SET := \
 	instruction_set/operands/gp_reg_operand.c \
 	instruction_set/operands/empty_operand.c \
 	lexer/lexer.c \
+	ir.c \
 	elf/elf_header.c \
 
 SOURCE_FILES := \

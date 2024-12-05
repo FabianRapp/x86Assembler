@@ -201,8 +201,8 @@ t_token	*next_command_block(t_token **head) {
 	return (command);
 }
 
-void	rm_whitespace(t_token **head) {
-	if ((*head)->type == TOKEN_WHITESPACE) {
+void	rm_irrelvant_tokens(t_token **head) {
+	if ((*head)->type == TOKEN_WHITESPACE || (*head)->type == TOKEN_COMMENT) {
 		rm_head(head);
 	}
 	
@@ -210,7 +210,9 @@ void	rm_whitespace(t_token **head) {
 	t_token	*tmp;
 
 	while (cur->next) {
-		if (cur->next->type == TOKEN_WHITESPACE) {
+		if (cur->next->type == TOKEN_WHITESPACE
+			|| cur->next->type == TOKEN_COMMENT)
+		{
 			tmp = cur->next;
 			cur->next = cur->next->next;
 			tmp->next = NULL;
@@ -262,7 +264,7 @@ t_token	*isolate_operand(t_token **list) {
 		TOKEN_COLUMN,
 	};
 	size_t			sub_stats_size = sizeof sub_stats / sizeof sub_stats[0];
-	t_token_type	scopes[30];
+	t_token_type	scope_stack[30];
 	size_t			scope_idx = 0;
 
 	t_token			*last = NULL;
@@ -281,11 +283,11 @@ t_token	*isolate_operand(t_token **list) {
 		if (type_in_set(cur->type, sub_stats, sub_stats_size)) {
 			//simply append
 		} else if (type_in_set(cur->type, scopes_opening, openings_size)) {
-			scopes[scope_idx++] = cur->type;
+			scope_stack[scope_idx++] = cur->type;
 		} else if (type_in_set(cur->type, scopes_closing, closings_size)) {
-			if (scopes[--scope_idx] != cur->type - 1) {
+			if (scope_stack[--scope_idx] != cur->type - 1) {
 				printf("******\n");
-				printf("%s vs %s\n", token_type_to_str(scopes[scope_idx]), token_type_to_str(cur->type));
+				printf("%s vs %s\n", token_type_to_str(scope_stack[scope_idx]), token_type_to_str(cur->type));
 				printf("scope_idx: %lu\n", scope_idx);
 				print_token(cur);
 				assert(0 && "expected diffrent scope termination");
@@ -300,42 +302,78 @@ t_token	*isolate_operand(t_token **list) {
 		cur = cur->next;
 		*list = (*list)->next;
 		cur->next = 0;
-		assert(scope_idx < sizeof scopes / sizeof scopes[0]
+		assert(scope_idx < sizeof scope_stack / sizeof scope_stack[0]
 			&& "scope stack to small");
 	}
 	return (head);
 }
 
-void	parse_command(t_token **head) {
-	rm_whitespace(head);
-	t_token	*identifier = *head;
-	*head = (*head)->next;
-	identifier->next = 0;
+void	simplify_operand(t_token *head) {
+	t_token	*cur = head;
+	t_token	*tmp = NULL;
 
-	//dynamic array of lists of operands
-	t_token	**operands = dyn_arr_init2(3, sizeof(t_token *), 0, free_token_list2);
-
-	size_t	operand_count = 0;
-	while (*head) {
-		t_token	*operand = isolate_operand(head);
-		dyn_arr_add_save((void**)&operands, &operand, operand_count++);
+	while (cur) {
+		if (cur->type == TOKEN_MATH_OP && !strcmp(cur->str, "-")
+				&& cur->next && cur->next->type == TOKEN_NB_LITERAL)
+		{
+			cur->type = cur->next->type;
+			assert(ft_strjoin_inplace(&cur->str, cur->next->str)
+				&& "malloc fail");
+			tmp = cur->next;
+			cur->next = cur->next->next;
+			tmp->next = NULL;
+			free_token(tmp);
+		} else {
+			cur = cur->next;
+		}
 	}
-	printf("\nline %lu: %s\n", identifier->debug_info.line_idx, identifier->debug_info.line);
-	printf("Command: ");
-	print_token(identifier);
-	for (size_t idx = 0; idx < operand_count; idx++) {
-		printf("Operand %lu: \n", idx);
-		print_token_list(operands[idx]);
-	}
-	dyn_arr_free((void **)&operands);
-	free_token(identifier);
 }
 
-void	parser(t_main *data) {
+t_ir	*parse_ir_command(t_token *cur) {
+	t_ir			*ir = new_ir_node(IR_COMMAND);
+	t_ir_command	*command = ir->node;
+
+	command->identifier = cur;
+	cur = cur->next;
+	command->identifier->next = 0;
+
+	while (cur) {
+		t_token	*operand = isolate_operand(&cur);
+		dyn_arr_add_save((void**)&command->operands, &operand, command->operand_count++);
+	}
+	printf("\nline %lu: %s\n", command->identifier->debug_info.line_idx, command->identifier->debug_info.line);
+	printf("Command: ");
+	print_token(command->identifier);
+	for (size_t idx = 0; idx < command->operand_count; idx++) {
+		printf("Operand %lu: \n", idx);
+		simplify_operand(command->operands[idx]);
+		print_token_list(command->operands[idx]);
+	}
+	return (ir);
+}
+
+t_ir	*parse_ir_directive(t_token *cur) {
+	t_ir			*ir = new_ir_node(IR_DIRECTIVE);
+	t_ir_directive	*directive = ir->node;
+
+	directive->tokens = cur;
+	sub_type_ir_directive(directive);
+	return (ir);
+}
+
+t_ir	*parse_ir_label(t_token *cur) {
+	t_ir		*ir = new_ir_node(IR_LABEL);
+	t_ir_label	*label = ir->node;
+	label->tokens = cur;
+	return (ir);
+}
+
+t_ir	*parser(t_main *data) {
 	t_token	*head_token = lexer(data->input);
-
 	t_token	*section;
+	t_ir	head_ir;
 
+	t_ir	*cur_ir = &head_ir;
 	section = next_command_block(&head_token);
 	while (section || head_token) {
 		if (!section) {
@@ -343,33 +381,38 @@ void	parser(t_main *data) {
 			continue ;
 		}
 		int	line_type = verify_valid_head(section);
+		rm_irrelvant_tokens(&section);
 		assert(line_type && "excepted a token to begin section block");
 		switch (line_type) {
 			case (COMMAND_TYPE):
-				parse_command(&section);
+				cur_ir->next = parse_ir_command(section);
 				break ;
 			case (DIRECTIVE_TYPE):
+				cur_ir->next = parse_ir_directive(section);
 				break ;
 			case (LABEL_TYPE):
+				cur_ir->next = parse_ir_label(section);
 				break ;
 			default:
 				assert(0 && "unknown line type");
 		}
-		free_token_list(section);
 		section = next_command_block(&head_token);
+		cur_ir = cur_ir->next;
 	}
-
-
-	printf("remaining head:\n");
-	print_token_list(head_token);
-	free_token_list(head_token);
+	assert(!head_token && "all tokes should either be moved to the IR "
+			"or removed");
+	return (head_ir.next);
 }
 
 int	main(int ac, char *av[]) {
 	t_main	data;
+	t_ir	*ir;
 
 	init(&data, ac, av);
-	parser(&data);
+	ir = parser(&data);
+	print_ir_list(ir);
+
+	free_ir_list(ir);
 
 	//char	**lines = ft_split(data.input, '\n');
 	//assert(lines && "malloc fail");

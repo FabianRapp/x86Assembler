@@ -66,5 +66,6 @@ void		free_token_list(t_token *head);
 void		free_token_list2(t_token **head);
 t_token 	*lexer(char *data);
 void		print_token_list(t_token *head);
+void		print_token_list_indent(t_token *head, size_t indent);
 void		print_token(t_token *token);
 

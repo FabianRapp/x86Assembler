@@ -49,7 +49,20 @@ Elf64_Ehdr	get_basic_elf(void) {
 	return (header);
 }
 
+void	add_section(Elf64_Ehdr *header){
+	header->e_shoff;
+	header->e_shnum += 1;
+	header->e_shstrndx;
+}
+
 void	make_executable_elf(Elf64_Ehdr *header) {
 	header->e_type = ET_EXEC;
 	header->e_entry = 0;
+}
+
+Elf64_Sym	new_symbol(void) {
+	Elf64_Sym	symbol;
+
+	bzero(&symbol, sizeof symbol);
+	return (symbol);
 }
