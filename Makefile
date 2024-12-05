@@ -34,6 +34,7 @@ SRC_INSTRUCTION_SET := \
 	lexer/lexer.c \
 	ir.c \
 	elf/elf_header.c \
+	elf/sections.c \
 
 SOURCE_FILES := \
 	$(SRC_MAIN) \

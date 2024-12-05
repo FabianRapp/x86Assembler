@@ -49,7 +49,7 @@ Elf64_Ehdr	get_basic_elf(void) {
 	return (header);
 }
 
-void	add_section(Elf64_Ehdr *header){
+void	add_section(Elf64_Ehdr *header, Elf64_Shdr section){
 	header->e_shoff;
 	header->e_shnum += 1;
 	header->e_shstrndx;

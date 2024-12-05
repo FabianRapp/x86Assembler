@@ -47,6 +47,8 @@ void	init(t_main *data, int ac, char *av[]) {
 
 	init_leaf_operand_sets(data->leaf_operand_sets);
 	data->instruct_set = init_instruct_set(data->leaf_operand_sets);
+	data->bin = dyn_arr_init2(3, sizeof(uint8_t), 0, NULL);
+	assert(data->bin && "malloc fail");
 
 	//data->operand_set = new_operand_set(SET_OPERAND_MASTER);
 

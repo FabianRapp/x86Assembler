@@ -10,7 +10,9 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <stdnoreturn.h>
+#include <elf.h>
 
+#include <my_elf.h>
 #include <libft.h>
 #include <lexer.h>
 #include <ir.h>
@@ -72,6 +74,9 @@ typedef struct s_op_code_bin {
 
 typedef struct s_main {
 	t_operand_set			leaf_operand_sets[SET_OPERAND_COUNT];
+	uint8_t					*bin;
+	size_t					bin_size;
+
 	char					*input;
 	t_instruct_set			instruct_set;
 	int						output;

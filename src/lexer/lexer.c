@@ -75,20 +75,20 @@ void	lex_read_append(t_lexer *lex, char **dest_str) {
 }
 
 bool	lex_comment(t_lexer *lex, t_token *token) {
-	if (lex->cur == '@') {
-		bool	except = false;
+	///if (lex->cur == '@') {
+	///	bool	except = false;
 
-		while (lex->cur != '\n' || except) {
-			if (!except && lex->cur == '\\') {
-				except = true;
-				lex_read(lex);
-				continue ;
-			}
-			lex_read_append(lex, &token->str);
-		}
-		token->type = TOKEN_COMMENT;
-		return (true);
-	}
+	///	while (lex->cur != '\n' || except) {
+	///		if (!except && lex->cur == '\\') {
+	///			except = true;
+	///			lex_read(lex);
+	///			continue ;
+	///		}
+	///		lex_read_append(lex, &token->str);
+	///	}
+	///	token->type = TOKEN_COMMENT;
+	///	return (true);
+	///}
 	return (false);
 }
 
@@ -119,6 +119,19 @@ bool	lex_comma(t_lexer *lex, t_token *token) {
 	for (size_t i = 0; i < sizeof signs / sizeof signs[0]; i++) {
 		if (lex->cur == signs[i]) {
 			token->type = TOKEN_COMMA;
+			lex_read(lex);
+			return (true);
+		}
+	}
+	return (false);
+}
+
+bool	lex_at(t_lexer *lex, t_token *token) {
+	char	signs[] = {'@',};
+
+	for (size_t i = 0; i < sizeof signs / sizeof signs[0]; i++) {
+		if (lex->cur == signs[i]) {
+			token->type = TOKEN_AT;
 			lex_read(lex);
 			return (true);
 		}
@@ -298,6 +311,7 @@ t_token	lex_next(t_lexer *lex) {
 	bool	(*typing[])(t_lexer*, t_token*) = {
 		lex_eof,
 		lex_comment,//has to be very early; todo: other comment types
+		lex_at,
 		lex_sep,
 		lex_dollar,
 		lex_brace,

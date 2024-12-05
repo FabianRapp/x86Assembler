@@ -1,5 +1,7 @@
 #include <main.h>
 
+
+
 noreturn void	cleanup(t_main *data) {
 	free(data->input);
 	free_instruct_set(data->instruct_set);
@@ -8,6 +10,7 @@ noreturn void	cleanup(t_main *data) {
 	for (t_operand_set_type i = 0; i < SET_OPERAND_COUNT; i++) {
 		free_operand_set(data->leaf_operand_sets + i);
 	}
+	dyn_arr_free((void**)&data->bin);
 	exit(0);
 }
 
@@ -262,6 +265,7 @@ t_token	*isolate_operand(t_token **list) {
 		TOKEN_NB_LITERAL,
 		TOKEN_IDENTIFIER,
 		TOKEN_COLUMN,
+		TOKEN_AT,
 	};
 	size_t			sub_stats_size = sizeof sub_stats / sizeof sub_stats[0];
 	t_token_type	scope_stack[30];
@@ -294,6 +298,7 @@ t_token	*isolate_operand(t_token **list) {
 			}
 		} else {
 			printf("******\n");
+			printf("%s: %lu\n", cur->debug_info.line, cur->debug_info.line_idx);
 			print_token(cur);
 			assert(0 && "operand sub part in category");
 		}
@@ -404,14 +409,17 @@ t_ir	*parser(t_main *data) {
 	return (head_ir.next);
 }
 
+void	init_sections(t_main *data, t_ir *ir) {
+}
+
 int	main(int ac, char *av[]) {
 	t_main	data;
 	t_ir	*ir;
 
 	init(&data, ac, av);
 	ir = parser(&data);
+	init_sections(&data, ir);
 	print_ir_list(ir);
-
 	free_ir_list(ir);
 
 	//char	**lines = ft_split(data.input, '\n');
