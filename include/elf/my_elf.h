@@ -1,5 +1,7 @@
 #pragma once
 
+// https://docs.oracle.com/cd/E37838_01/html/E61063/elf-23207.html
+
 #include <elf.h>
 #include <assert.h>
 #include <string.h>
@@ -11,8 +13,16 @@ typedef enum {
 	SECTION_SHSTRTAB,
 	SECTION_TEXT,
 	SECTION_DATA,
+	SECTION_DATA1,
 	SECTION_BSS,
 	SECTION_UNDEFINED,
+	SECTION_INIT,
+	SECTION_FINI,
+	SECTION_COMMENT,
+	SECTION_RO_DATA,
+	SECTION_RO_DATA1,
+	SECTTION_LINE,
+	SECTION_NOTE,
 	//SECTION_DEBUG,//todo: later, read: DWARF
 	SECTION_COUNT,
 }	t_section_type;
@@ -38,15 +48,10 @@ typedef struct {
 	uint8_t			*buf;//for binary data that will be output in the end
 }	t_section;
 
-//map with <key: string>, <value:t_symbol>
-//todo t_str_map
-typedef char*	t_str_map;
-typedef t_str_map	t_symbol_tabel;
-
 typedef struct {
 	t_section		*arr;//dyn arr
 	size_t			section_count;
-	t_symbol_tabel	sybol_tabel;
+	t_map	sybol_tabel;
 }	t_sections;
 
 typedef enum {
